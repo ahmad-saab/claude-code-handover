@@ -21,6 +21,64 @@ the agent can find things by grep instead of by remembering them.
 
 On one real archive: **33 sessions, 190 MB in, 3.0 MB out, in about a second.**
 
+## What it looks like
+
+Illustrative example, real formats. Index rows are one tab-separated line each,
+wrapped below so they fit the page.
+
+Ask a question you would otherwise have to remember the answer to:
+
+```console
+$ grep -i "rate limit" .handover/INDEX.tsv
+2026-08-14T09:12:41.507Z  a1b4c7d2  main  T31  PROMPT  sessions/2026-08-14-0847-a1b4c7d2.md:612
+  the login endpoint needs a rate limit, 5 attempts then a 15 minute lockout
+2026-08-14T09:31:08.220Z  a1b4c7d2  main  T33  PROMPT  sessions/2026-08-14-0847-a1b4c7d2.md:698
+  no, drop the lockout, just throttle. a lockout is a denial of service on the real user
+2026-08-19T16:02:55.881Z  e9f2a038  auth   T7  ERROR   sessions/2026-08-19-1554-e9f2a038.md:141
+  RuntimeError: throttle key must be scoped per account, not per IP
+```
+
+Three lines that a compaction would have thrown away: what was asked, that it was
+**reversed** twenty minutes later and why, and the error someone already hit
+building it. Every row carries the file and line to read the whole turn.
+
+Open the second hit and you get the instruction with everything done under it:
+
+```markdown
+## T33 2026-08-14T09:31:08.220Z main
+
+PROMPT
+no, drop the lockout, just throttle. a lockout is a denial of service on the real user
+
+ACTIONS
+- EDIT app/Http/Middleware/ThrottleLogins.php
+- EDIT config/auth.php
+- BASH php artisan test --filter=Throttle
+- ERROR 1 failed: expected 429, got 423
+
+REPLY
+Lockout removed, replaced with a 5/minute throttle keyed on account plus IP.
+config/auth.php no longer carries lockout_minutes. One test still asserted the
+old 423 and now asserts 429.
+```
+
+The chronological view across every session, `TIMELINE.md`:
+
+```markdown
+| when (UTC) | session | turn | branch | instruction | ref |
+| --- | --- | --- | --- | --- | --- |
+| 2026-08-14T09:12:41.507Z | a1b4c7d2 | T31 | main | the login endpoint needs a rate limit, 5 attempts th ... | sessions/2026-08-14-0847-a1b4c7d2.md:612 |
+| 2026-08-14T09:31:08.220Z | a1b4c7d2 | T33 | main | no, drop the lockout, just throttle. a lockout is a  ... | sessions/2026-08-14-0847-a1b4c7d2.md:698 |
+| 2026-08-19T15:54:02.113Z | e9f2a038 | T1  | auth | port the throttle to the new auth guard              | sessions/2026-08-19-1554-e9f2a038.md:13  |
+```
+
+And which sessions touched a file, `FILES.tsv`:
+
+```console
+$ grep -i "ThrottleLogins" .handover/FILES.tsv
+app/Http/Middleware/ThrottleLogins.php  6  2026-08-14T09:31:08.220Z  2026-08-19T16:14:20.905Z  a1b4c7d2,e9f2a038
+```
+
 ## Install
 
 Clone into your Claude Code skills directory:
