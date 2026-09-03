@@ -157,7 +157,7 @@ Every row is self-contained and ends in a `sessions/<file>.md:<line>` jump
 target, so a single grep gives you the hit *and* where to read around it.
 
 ```bash
-grep -i "navbar" .handover/INDEX.tsv        # every mention of a topic
+grep -i "throttle" .handover/INDEX.tsv      # every mention of a topic
 grep -P "\tPROMPT\t" .handover/INDEX.tsv    # every instruction you ever gave
 grep -P "\tERROR\t" .handover/INDEX.tsv     # everything that failed
 ```
@@ -184,21 +184,21 @@ The readable transcripts, grouped into turns. A **turn** is one instruction plus
 everything done under it:
 
 ```markdown
-## T12 2026-08-29T06:02:00.998Z main
+## T7 2026-08-19T15:54:02.113Z auth
 
 PROMPT
-merge the hero image with the navbar, and note the current settings in MEMORY.md
-first in case we need to revert
+port the throttle to the new auth guard, and keep the per-account scoping
 
 ACTIONS
-- EDIT assets/site.css
-- EDIT index.html
-- BASH npm run build
-- ERROR File does not exist.
+- EDIT app/Http/Middleware/ThrottleLogins.php
+- EDIT app/Providers/AuthServiceProvider.php
+- BASH php artisan test --filter=Throttle
+- ERROR RuntimeError: throttle key must be scoped per account, not per IP
 
 REPLY
-Done. Nav sits on the image with a 70% red band. Previous values recorded in
-MEMORY.md under "hero".
+Ported. The guard resolves the account before the throttle runs, so the key is
+account plus IP as before. The failure above was the old IP-only key still being
+built in the provider; removed.
 ```
 
 Files are named `YYYY-MM-DD-HHMM-<id8>.md`, so a lexical sort is a chronological
