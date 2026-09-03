@@ -26,7 +26,7 @@ On one real archive: **33 sessions, 190 MB in, 3.0 MB out, in about a second.**
 Clone into your Claude Code skills directory:
 
 ```bash
-git clone https://github.com/<you>/claude-code-handover ~/.claude/skills/handover
+git clone https://github.com/ahmad-saab/claude-code-handover ~/.claude/skills/handover
 ```
 
 Requires Python 3.8+. No dependencies — standard library only.
